@@ -3,7 +3,7 @@
 Software of the team Shadoks for the the CG:SHOP 2022 challenge [Minimum Partition into Plane Subgraphs](https://cgshop.ibr.cs.tu-bs.de/competition/cg-shop-2022/#problem-description)
 
 ## Installation
-Our software does not have any dependences. To compile our code, simply do
+Our software does not have any dependencies. To compile our code, simply do
 ```bash
 mkdir build
 cd build
