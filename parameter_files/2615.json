@@ -1,0 +1,15 @@
+{
+    "instance": "../../../instances/rvispecn2615.instance.json",
+    "solution": "rvispecn2615.bad.20220512-160255.sol.json",
+    "algorithm": "conflict",
+    "power": 1.2,
+    "noise_mean": 1,
+    "noise_var": 0.15,
+    "max_queue": 1500000, 
+    "max_run_time": 60,
+    "dfs": true,
+    "easy": true,
+    "loop": true,
+    "loop_time": 3600,
+    "power_loop": [1.1, 1.2, 1.3, 1.5, 2.0]
+}
