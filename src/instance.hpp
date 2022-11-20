@@ -20,9 +20,11 @@ class Instance
 protected:
     Parameters param;
     std::vector<Segment> segments;
+    std::size_t n_segments;
     std::string instance_id; // id of the instance
     std::string author; // name of the author of this solution
     std::string host; // machine computing this solution
+    bool dimacs = false; // it is a DIMACS instance
     const std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 
     /**
@@ -74,15 +76,24 @@ protected:
     {
         rapidjson::Document doc = read_json(param.instance_name);
 
-        const std::vector<int> x_vec = json_int_vec(doc["x"]);
-        const std::vector<int> y_vec = json_int_vec(doc["y"]);
-        const std::vector<int> i_vec = json_int_vec(doc["edge_i"]);
-        const std::vector<int> j_vec = json_int_vec(doc["edge_j"]);
-        for (size_t k = 0; k < i_vec.size(); k++)
+        if (doc["type"].GetString() == "Instance_CGSHOP2022")
         {
-            Point p(x_vec[i_vec[k]], y_vec[i_vec[k]]);
-            Point q(x_vec[j_vec[k]], y_vec[j_vec[k]]);
-            segments.push_back(Segment(p, q));
+            const std::vector<int> x_vec = json_int_vec(doc["x"]);
+            const std::vector<int> y_vec = json_int_vec(doc["y"]);
+            const std::vector<int> i_vec = json_int_vec(doc["edge_i"]);
+            const std::vector<int> j_vec = json_int_vec(doc["edge_j"]);
+            for (size_t k = 0; k < i_vec.size(); k++)
+            {
+                Point p(x_vec[i_vec[k]], y_vec[i_vec[k]]);
+                Point q(x_vec[j_vec[k]], y_vec[j_vec[k]]);
+                segments.push_back(Segment(p, q));
+            }
+            n_segments = segments.size();
+        }
+        else
+        {
+            dimacs = true;
+            n_segments = doc["edges"].GetInt();
         }
 
         instance_id = doc["id"].GetString();

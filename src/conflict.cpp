@@ -2,7 +2,7 @@
 
 Conflict::Conflict(Parameters param)
     : Solution(param),
-      queue_count(segments.size(), 0)
+      queue_count(n_segments, 0)
 {
     generate_intersection_map();
 }
@@ -25,7 +25,7 @@ void Conflict::init_solution()
     }
     else // make a new solution
     {
-        for (unsigned si = 0; si < segments.size(); si++)
+        for (unsigned si = 0; si < n_segments; si++)
         {
             bool is_inserted = false;
             for (unsigned c = 0; c < classes.size(); c++)
@@ -94,9 +94,9 @@ bool Conflict::edge_can_be_added_to_graph(int si, int c) const
 void Conflict::remove_easy_segs(int bound)
 {
     // Compute the degree of each segment
-    std::vector<long> degree(segments.size(), 0); // degree[i] = number of segments intersecting the i-th segment
-    for (unsigned i = 0; i < segments.size(); ++i)
-        for (unsigned j = i+1; j < segments.size(); ++j)
+    std::vector<long> degree(n_segments, 0); // degree[i] = number of segments intersecting the i-th segment
+    for (unsigned i = 0; i < n_segments; ++i)
+        for (unsigned j = i+1; j < n_segments; ++j)
             if (crosses(i, j))
             {
                 degree[i]++;
@@ -145,27 +145,52 @@ void Conflict::remove_easy_segs(int bound)
  */
 void Conflict::generate_intersection_map()
 {
-    const int m = segments.size();
-    int size = ((m - 1) / 32) + 1;
-    crossings.resize(m);
-    for (int i = 0; i < m; ++i)
-        crossings[i].resize(size);
-
-    for (int i = 0; i < m; ++i)
+    if (!dimacs)
     {
-        const int index_i = i / 32;
-        const int shift_i = i % 32;
-        for (int j = i + 1; j < m; ++j) {
+        const int m = segments.size();
+        int size = ((m - 1) / 32) + 1;
+        crossings.resize(m);
+        for (int i = 0; i < m; ++i)
+            crossings[i].resize(size);
 
-            if (segments[i].cross(segments[j]))
-            {
-                const int index_j = j / 32;
-                const int shift_j = j % 32;
-                crossings[i][index_j] = crossings[i][index_j] | (1 << shift_j);
-                crossings[j][index_i] = crossings[j][index_i] | (1 << shift_i);
+        for (int i = 0; i < m; ++i)
+        {
+            const int index_i = i / 32;
+            const int shift_i = i % 32;
+            for (int j = i + 1; j < m; ++j) {
+
+                if (segments[i].cross(segments[j]))
+                {
+                    const int index_j = j / 32;
+                    const int shift_j = j % 32;
+                    crossings[i][index_j] = crossings[i][index_j] | (1 << shift_j);
+                    crossings[j][index_i] = crossings[j][index_i] | (1 << shift_i);
+                }
             }
         }
     }
+    else
+    {
+        rapidjson::Document doc = read_json(param.instance_name);
+        const int m = doc["edges"].GetInt();
+        int size = ((m - 1) / 32) + 1;
+        crossings.resize(m);
+        for (int i = 0; i < m; ++i)
+            crossings[i].resize(size);
+
+        for (auto &x : doc["pairs"].GetArray())
+        {
+            const int i = x[0].GetInt() - 1;
+            const int j = x[1].GetInt() - 1;
+            const int index_i = i / 32;
+            const int shift_i = i % 32;
+            const int index_j = j / 32;
+            const int shift_j = j % 32;
+            crossings[i][index_j] = crossings[i][index_j] | (1 << shift_j);
+            crossings[j][index_i] = crossings[j][index_i] | (1 << shift_i);
+        }
+    }
+
 }
 
 
@@ -303,7 +328,7 @@ void Conflict::shuffle_once()
 void Conflict::reset_queue_count()
 {
     queue_count.clear();
-    queue_count.resize(segments.size(), 0);
+    queue_count.resize(n_segments, 0);
     // Put clique segments weight to infty
     for (int si : clique)
         queue_count.at(si) = std::numeric_limits<int>::max();
@@ -828,7 +853,7 @@ int Conflict::add_data_point_to_graph_file()
  */
 bool Conflict::best_color(int seg, int &best_c, std::list<int> &conflicting_segs)
 {
-    double min_conflict = param.max_queue * segments.size();
+    double min_conflict = param.max_queue * n_segments;
 
     for (unsigned c = 0; c < classes.size(); c++)
     {
@@ -869,7 +894,7 @@ bool Conflict::best_color(int seg, int &best_c, std::list<int> &conflicting_segs
         }
 
     }
-    return (min_conflict < param.max_queue * segments.size());
+    return (min_conflict < param.max_queue * n_segments);
 }
 
 

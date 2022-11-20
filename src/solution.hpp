@@ -45,7 +45,7 @@ public:
     virtual void clear()
     {
         colorv.clear();
-        for (size_t i = 0; i < segments.size(); i++)
+        for (size_t i = 0; i < n_segments; i++)
             colorv.push_back(-1);
     }
 
@@ -101,8 +101,8 @@ public:
         rapidjson::Document doc = read_json(fn);
 //        const long num_colors = doc["num_colors"].GetInt();
 
-        colorv.resize(segments.size());
-        for (unsigned i = 0; i < segments.size(); i++)
+        colorv.resize(n_segments);
+        for (unsigned i = 0; i < n_segments; i++)
             colorv[i] = doc["colors"][i].GetInt();
     }
 
@@ -133,7 +133,7 @@ public:
             parse_info_file();
         if (param.max_queue < 1)
         {
-            long card = segments.size();
+            long card = n_segments;
             double nb_repetition = 75000.0 / card;
             nb_repetition = nb_repetition * nb_repetition;
             nb_repetition = nb_repetition * 2000;
